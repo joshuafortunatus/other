@@ -13,6 +13,7 @@ where
     o.id not in (172484)
     and date_trunc('year',p.created_at at time zone 'utc') at time zone 'america/denver' = '2017-01-01'
 group by 1,2
+    having count(p.id) is not null
 order by 2 desc
 ),
 
@@ -20,6 +21,7 @@ eighteen as
 (
 select
     l.city                  as city,
+    l.state                 as state,
     count(distinct p.id)    as number_of_payments
 from
             owners o
@@ -29,7 +31,8 @@ from
 where
     o.id not in (172484)
     and date_trunc('year',p.created_at at time zone 'utc') at time zone 'america/denver' = '2018-01-01'
-group by 1
+group by 1,2
+    having count(p.id) is not null
 order by 2 desc
 ),
 
@@ -37,6 +40,7 @@ nineteen as
 (
 select
     l.city                  as city,
+    l.state                 as state,
     count(distinct p.id)    as number_of_payments
 from
             owners o
@@ -46,7 +50,8 @@ from
 where
     o.id not in (172484)
     and date_trunc('year',p.created_at at time zone 'utc') at time zone 'america/denver' = '2019-01-01'
-group by 1
+group by 1,2
+    having count(p.id) is not null
 order by 2 desc
 )
 
@@ -62,9 +67,10 @@ select
     round(100*((n.number_of_payments::numeric - e.number_of_payments::numeric)/e.number_of_payments::numeric),0)||'%'   as "Percentage Growth from '18 to '19"
 from
     seventeen s
-    left join eighteen e on e.city = s.city
-    left join nineteen n on n.city = s.city
-where n.number_of_payments - e.number_of_payments is not null
+    left join eighteen e on e.city = s.city and e.state = s.state
+    left join nineteen n on n.city = s.city and n.state = s.state
+where
+    n.number_of_payments - e.number_of_payments is not null
 group by 1,2,3,4,5
 order by 7 desc
 limit 50
